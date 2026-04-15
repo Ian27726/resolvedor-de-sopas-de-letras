@@ -2,213 +2,181 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sopa VIP Pro - Configurable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sopa VIP - Control de Filas</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
-        :root { --p-color: #2196f3; --s-color: #673ab7; --bg: #eef2f3; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        
-        /* Bloqueo Seguridad */
-        #bloqueo-total { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; text-align: center; padding-top: 100px; }
-        
-        /* Configuración */
-        #config-panel { position: fixed; top: 10px; left: 10px; z-index: 1000; }
-        .config-btn { background: #444; color: white; border-radius: 50%; width: 40px; height: 40px; border: none; cursor: pointer; font-size: 20px; }
-        .config-menu { display: none; background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: 5px; }
-        
-        /* Layout */
-        #main-container { display: none; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 50px; }
-        .seccion-sopa { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex: 1; min-width: 350px; transition: all 0.3s; }
-        .modo-single .seccion-sopa:nth-child(2) { display: none; }
-        .modo-single .seccion-sopa { max-width: 800px; }
-
-        textarea { width: 95%; height: 80px; font-size: 11px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px; }
-        .grid { display: inline-block; background: #333; padding: 2px; border-radius: 4px; margin-top: 10px; }
-        .grid-row { display: flex; }
-        .cell { width: 24px; height: 24px; background: white; border: 0.1px solid #eee; text-align: center; line-height: 24px; font-weight: bold; font-size: 13px; }
-        .cell.active { transform: scale(1.1); outline: 2px solid #000; z-index: 5; }
-        
-        button { width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; color: white; margin-top: 5px; }
-        .btn-voice { background: #ff5722; position: fixed; bottom: 20px; right: 20px; width: auto; padding: 12px 25px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .p-item { display: inline-block; padding: 5px 10px; background: #f0f0f0; margin: 3px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; border: 1px solid #ccc; }
-        .btn-clear { background: #f44336 !important; font-size: 11px; padding: 5px; margin-bottom: 10px; }
+        :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
+        body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 10px; }
+        #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #app { display: none; flex-direction: column; gap: 20px; align-items: center; padding-top: 50px; }
+        .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; gap: 10px; z-index: 500; }
+        .seccion { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; max-width: 600px; }
+        textarea { width: 100%; height: 60px; font-size: 10px; margin: 5px 0; }
+        .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; margin-top: 10px; }
+        .row { display: flex; align-items: center; }
+        .btn-fila { width: 18px; height: 18px; background: #999; border: none; border-radius: 3px; cursor: pointer; margin-right: 5px; font-size: 9px; color: white; }
+        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; }
+        .cell.active { outline: 2px solid black; z-index: 5; }
+        button { border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .p-item { display: inline-block; padding: 5px 10px; background: #eee; margin: 3px; border-radius: 15px; font-size: 12px; cursor: pointer; border: 1px solid #ccc; }
     </style>
 </head>
-<body onload="verificarAcceso()">
+<body>
 
-    <div id="bloqueo-total"><h1>🛡️ VALIDANDO ACCESO...</h1><p>ID: YO</p></div>
+    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2></div>
 
-    <div id="config-panel">
-        <button class="config-btn" onclick="toggleMenu()">⚙️</button>
-        <div id="menu" class="config-menu">
-            <h4>Configuración</h4>
-            <label>Modo de vista:</label><br>
-            <select id="view-mode" onchange="cambiarModo()">
-                <option value="dual">Dos Sopas</option>
-                <option value="single">Una Sola Sopa</option>
-            </select>
-            <hr>
-            <button class="btn-clear" onclick="limpiar('A')">🗑️ Borrar Lado A</button>
-            <button class="btn-clear" onclick="limpiar('B')">🗑️ Borrar Lado B</button>
-        </div>
+    <div class="config-bar">
+        <select id="mode" onchange="document.getElementById('app').className = this.value">
+            <option value="modo-dual">Dos Sopas</option>
+            <option value="modo-single">Una Sola Sopa</option>
+        </select>
+        <button style="background:var(--danger)" onclick="limpiar('A')">Limpiar A</button>
+        <button style="background:var(--danger)" onclick="limpiar('B')">Limpiar B</button>
     </div>
 
-    <div id="main-container">
-        <div class="seccion-sopa" id="sec-A">
-            <h2>Lado A</h2>
-            <input type="file" id="file-A" accept="image/*">
-            <button style="background:var(--s-color)" onclick="escanear('A')">🔍 Leer Foto A</button>
-            <textarea id="letras-A" placeholder="Letras (filas de la sopa)..."></textarea>
-            <textarea id="palabras-A" placeholder="Palabras (separadas por espacio o coma)..."></textarea>
-            <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Sopa A</button>
-            <div id="grid-A" class="grid"></div>
-            <div id="lista-A" style="margin-top:10px;"></div>
+    <div id="app">
+        <div class="seccion" id="sec-A">
+            <h3>Lado A</h3>
+            <input type="file" id="f-A" accept="image/*">
+            <button style="background:var(--s); width:100%" onclick="scan('A')">🔍 Escanear Foto</button>
+            <textarea id="l-A" placeholder="Letras..."></textarea>
+            <textarea id="p-A" placeholder="Palabras..."></textarea>
+            <button style="background:var(--p); width:100%" onclick="gen('A')">🏗️ Generar Sopa</button>
+            <div id="g-A" class="grid"></div>
+            <div id="list-A"></div>
         </div>
 
-        <div class="seccion-sopa" id="sec-B">
-            <h2>Lado B</h2>
-            <input type="file" id="file-B" accept="image/*">
-            <button style="background:var(--s-color)" onclick="escanear('B')">🔍 Leer Foto B</button>
-            <textarea id="letras-B" placeholder="Letras..."></textarea>
-            <textarea id="palabras-B" placeholder="Palabras..."></textarea>
-            <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Sopa B</button>
-            <div id="grid-B" class="grid"></div>
-            <div id="lista-B" style="margin-top:10px;"></div>
+        <div class="seccion" id="sec-B">
+            <h3>Lado B</h3>
+            <input type="file" id="f-B" accept="image/*">
+            <button style="background:var(--s); width:100%" onclick="scan('B')">🔍 Escanear Foto</button>
+            <textarea id="l-B" placeholder="Letras..."></textarea>
+            <textarea id="p-B" placeholder="Palabras..."></textarea>
+            <button style="background:var(--p); width:100%" onclick="gen('B')">🏗️ Generar Sopa</button>
+            <div id="g-B" class="grid"></div>
+            <div id="list-B"></div>
         </div>
     </div>
-
-    <button onclick="escucharVoz()" class="btn-voice">🎤 Dime palabra...</button>
 
 <script>
     const MI_ID = "YO";
-    const PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe");
+    let dataSopa = { A: {grid:[], map:{}}, B: {grid:[], map:{}} };
 
-    let sopas = { A: { grid:[], map:{}, active:new Set() }, B: { grid:[], map:{}, active:new Set() } };
-
-    async function verificarAcceso() {
+    async function check() {
         try {
-            const res = await fetch(PASTEBIN);
-            const json = await res.json();
-            if (json.contents.toUpperCase().includes(MI_ID)) {
-                document.getElementById('main-container').style.display = 'flex';
-                document.getElementById('bloqueo-total').style.display = 'none';
+            const r = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"));
+            const j = await r.json();
+            if (j.contents.toUpperCase().includes(MI_ID)) {
+                document.getElementById('app').style.display = 'flex';
+                document.getElementById('bloqueo').style.display = 'none';
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { setTimeout(check, 2000); }
     }
-
-    function toggleMenu() {
-        const m = document.getElementById('menu');
-        m.style.display = m.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function cambiarModo() {
-        const modo = document.getElementById('view-mode').value;
-        const container = document.getElementById('main-container');
-        container.className = modo === 'single' ? 'modo-single' : '';
-    }
+    check();
 
     function limpiar(lado) {
-        document.getElementById(`letras-${lado}`).value = '';
-        document.getElementById(`palabras-${lado}`).value = '';
-        document.getElementById(`grid-${lado}`).innerHTML = '';
-        document.getElementById(`lista-${lado}`).innerHTML = '';
-        sopas[lado] = { grid:[], map:{}, active:new Set() };
+        document.getElementById(`l-${lado}`).value = '';
+        document.getElementById(`p-${lado}`).value = '';
+        document.getElementById(`g-${lado}`).innerHTML = '';
+        document.getElementById(`list-${lado}`).innerHTML = '';
     }
 
-    async function escanear(lado) {
-        const f = document.getElementById(`file-${lado}`).files[0];
-        if(!f) return;
-        Tesseract.recognize(f, 'spa').then(({data:{text}}) => {
-            // Mejora en limpieza para evitar fallos en Lado A
-            const limpio = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 3).join('\n');
-            document.getElementById(`letras-${lado}`).value = limpio;
+    async function scan(lado) {
+        const file = document.getElementById(`f-${lado}`).files[0];
+        if(!file) return;
+        Tesseract.recognize(file, 'spa').then(({data:{text}}) => {
+            document.getElementById(`l-${lado}`).value = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').filter(l => l.length > 3).join('\n');
         });
     }
 
-    function generar(lado) {
-        const rawLetras = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
-        // Asegurar que todas las filas tengan el mismo largo
-        const maxLen = Math.max(...rawLetras.map(l => l.length));
-        sopas[lado].grid = rawLetras.map(l => l.padEnd(maxLen, ' '));
-        
-        const pRaw = document.getElementById(`palabras-${lado}`).value.toUpperCase().replace(/,/g, ' ').split(/\s+/).filter(w => w.length > 0);
-        
-        const gEl = document.getElementById(`grid-${lado}`);
-        const lEl = document.getElementById(`lista-${lado}`);
-        gEl.innerHTML = ''; lEl.innerHTML = ''; sopas[lado].map = {}; sopas[lado].active.clear();
+    function gen(lado) {
+        const lines = document.getElementById(`l-${lado}`).value.trim().toUpperCase().split('\n');
+        dataSopa[lado].grid = lines;
+        const gEl = document.getElementById(`g-${lado}`);
+        const lEl = document.getElementById(`list-${lado}`);
+        gEl.innerHTML = ''; lEl.innerHTML = '';
 
-        sopas[lado].grid.forEach((fila, r) => {
-            const row = document.createElement('div'); row.className = 'grid-row';
-            fila.split('').forEach((l, c) => {
+        lines.forEach((rowStr, r) => {
+            const divRow = document.createElement('div'); 
+            divRow.className = 'row';
+            divRow.id = `row-${lado}-${r}`;
+
+            // BOTÓN DE FILA
+            const btn = document.createElement('button');
+            btn.className = 'btn-fila';
+            btn.textContent = '▶';
+            btn.onclick = () => marcarFila(lado, r);
+            btn.ondblclick = () => borrarFila(lado, r);
+            
+            divRow.appendChild(btn);
+
+            rowStr.split('').forEach((char, c) => {
                 const cell = document.createElement('div'); cell.className = 'cell';
-                cell.id = `c-${lado}-${r}-${c}`; cell.textContent = l;
-                row.appendChild(cell);
+                cell.id = `c-${lado}-${r}-${c}`; cell.textContent = char;
+                divRow.appendChild(cell);
             });
-            gEl.appendChild(row);
+            gEl.appendChild(divRow);
         });
 
-        pRaw.forEach(p => {
-            const item = document.createElement('span'); item.className = 'p-item';
-            item.id = `p-${lado}-${norm(p)}`; item.textContent = p;
-            item.onclick = () => toggle(lado, p);
-            lEl.appendChild(item);
-            buscar(lado, p);
+        const words = document.getElementById(`p-${lado}`).value.toUpperCase().split(/[\s,]+/);
+        words.filter(w => w.length > 1).forEach(w => {
+            const span = document.createElement('span'); span.className = 'p-item';
+            span.textContent = w;
+            span.onclick = () => togglePalabra(lado, w, span);
+            lEl.appendChild(span);
+            find(lado, w);
         });
     }
 
-    function norm(t) { return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); }
+    function marcarFila(lado, r) {
+        const rowDiv = document.getElementById(`row-${lado}-${r}`);
+        const cells = rowDiv.querySelectorAll('.cell');
+        const color = "#ffff99"; // Color para remarcar
+        cells.forEach(c => c.style.background = c.style.background === '' ? color : '');
+    }
 
-    function buscar(lado, palabra) {
-        const p = norm(palabra); const grid = sopas[lado].grid;
-        if(!grid.length) return;
-        const rows = grid.length; const cols = grid[0].length;
+    function borrarFila(lado, r) {
+        const rowDiv = document.getElementById(`row-${lado}-${r}`);
+        const cells = rowDiv.querySelectorAll('.cell');
+        cells.forEach(c => {
+            c.textContent = ''; // Borra la letra
+            c.style.background = '#ffcccc'; // Color de borrado
+        });
+    }
+
+    function find(lado, word) {
+        const w = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const grid = dataSopa[lado].grid;
         const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
-        for (let r=0; r<rows; r++) {
-            for (let c=0; c<cols; c++) {
-                for (let [dr, dc] of dirs) {
-                    let co = [];
-                    for (let i=0; i<p.length; i++) {
+        for(let r=0; r<grid.length; r++) {
+            for(let c=0; c<grid[r].length; c++) {
+                for(let [dr, dc] of dirs) {
+                    let coords = [];
+                    for(let i=0; i<w.length; i++) {
                         let nr = r+dr*i, nc = c+dc*i;
-                        if (nr<0||nr>=rows||nc<0||nc>=cols || norm(grid[nr][nc])!==p[i]) { co=[]; break; }
-                        co.push(`${nr}-${nc}`);
+                        if(nr<0||nr>=grid.length||nc<0||nc>=grid[nr].length||grid[nr][nc]!==w[i]) break;
+                        coords.push(`${nr}-${nc}`);
                     }
-                    if (co.length > 0) {
-                        sopas[lado].map[p] = { coords: co, start: {r: r+1, c: c+1}, color: `hsl(${Math.random()*360}, 75%, 85%)` };
-                        return true;
+                    if(coords.length === w.length) {
+                        dataSopa[lado].map[w] = {coords, color: `hsl(${Math.random()*360}, 70%, 80%)`};
+                        return;
                     }
                 }
             }
         }
     }
 
-    function toggle(lado, p) {
-        const pN = norm(p); const data = sopas[lado].map[pN]; if(!data) return;
-        const set = sopas[lado].active;
-        set.has(pN) ? set.delete(pN) : set.add(pN);
-        data.coords.forEach(co => {
+    function togglePalabra(lado, w, span) {
+        const d = dataSopa[lado].map[w];
+        if(!d) return;
+        const yaMarcada = span.style.background !== '';
+        d.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            if(el) {
-                el.style.backgroundColor = set.has(pN) ? data.color : 'white';
-                set.has(pN) ? el.classList.add('active') : el.classList.remove('active');
-            }
+            el.style.background = yaMarcada ? 'white' : d.color;
+            yaMarcada ? el.classList.remove('active') : el.classList.add('active');
         });
-        document.getElementById(`p-${lado}-${pN}`).style.backgroundColor = set.has(pN) ? data.color : '#f0f0f0';
-    }
-
-    function escucharVoz() {
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'es-ES'; rec.start();
-        rec.onresult = (e) => {
-            const cmd = e.results[0][0].transcript.toUpperCase();
-            ['A', 'B'].forEach(lado => {
-                const p = Object.keys(sopas[lado].map).find(x => cmd.includes(x));
-                if(p) {
-                    const loc = sopas[lado].map[p].start;
-                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${p} en Sopa ${lado}: fila ${loc.r}, columna ${loc.c}`));
-                    if(!sopas[lado].active.has(p)) toggle(lado, p);
-                }
-            });
-        };
+        span.style.background = yaMarcada ? '' : d.color;
     }
 </script>
 </body>
