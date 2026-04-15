@@ -3,39 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopa VIP Móvil</title>
+    <title>Sopa VIP - Control por Filas</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
         :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
         body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 5px; touch-action: manipulation; }
         #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app { display: none; flex-direction: column; gap: 15px; align-items: center; padding-top: 60px; width: 100%; }
-        
         .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; gap: 5px; z-index: 500; height: 45px; align-items: center; }
-        .config-bar select { height: 35px; border-radius: 5px; }
-        
         .seccion { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; box-sizing: border-box; }
         textarea { width: 100%; height: 60px; font-size: 11px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
-        
         .grid-wrapper { overflow-x: auto; width: 100%; text-align: center; margin-top: 10px; }
         .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; }
-        .row { display: flex; align-items: center; }
-        
-        /* BOTÓN DE FILA MEJORADO */
-        .btn-fila { width: 28px; height: 28px; background: #666; border: 1px solid white; border-radius: 4px; cursor: pointer; margin-right: 5px; color: white; font-size: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-        
+        .row { display: flex; }
         .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; }
         .cell.active { outline: 2px solid black; z-index: 5; }
+        .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
         
-        .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; font-size: 14px; }
-        .p-item { display: inline-block; padding: 8px 12px; background: #eee; margin: 3px; border-radius: 15px; font-size: 13px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; }
+        /* ESTILO LISTA DE PALABRAS POR FILAS */
+        .fila-palabras { display: flex; align-items: center; background: #f9f9f9; margin: 5px 0; padding: 5px; border-radius: 8px; border: 1px solid #ddd; }
+        .btn-fila-palabras { width: 35px; height: 35px; background: #444; color: white; border: none; border-radius: 5px; margin-right: 10px; flex-shrink: 0; font-weight: bold; }
+        .contenedor-items { display: flex; flex-wrap: wrap; gap: 5px; }
+        .p-item { padding: 8px 12px; background: #eee; border-radius: 15px; font-size: 12px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; }
         
         .modo-single #sec-B { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2><p>ID: YO</p></div>
+    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2></div>
 
     <div class="config-bar">
         <select id="mode" onchange="document.getElementById('app').className = this.value">
@@ -48,31 +44,31 @@
 
     <div id="app" class="modo-dual">
         <div class="seccion" id="sec-A">
-            <h3 style="margin:0">Lado A</h3>
-            <input type="file" id="f-A" accept="image/*" style="font-size:10px">
+            <h3>Lado A</h3>
+            <input type="file" id="f-A" accept="image/*">
             <button class="btn-accion" style="background:var(--s)" onclick="scan('A')">🔍 Leer Foto</button>
-            <textarea id="l-A" placeholder="Letras aquí..."></textarea>
-            <textarea id="p-A" placeholder="Palabras a buscar..."></textarea>
-            <button class="btn-accion" style="background:var(--p)" onclick="gen('A')">🏗️ Generar Tablero</button>
+            <textarea id="l-A" placeholder="Letras..."></textarea>
+            <textarea id="p-A" placeholder="Palabras (una por fila o separadas por coma)..."></textarea>
+            <button class="btn-accion" style="background:var(--p)" onclick="gen('A')">🏗️ Generar</button>
             <div class="grid-wrapper"><div id="g-A" class="grid"></div></div>
-            <div id="list-A" style="margin-top:10px"></div>
+            <div id="list-A" style="margin-top:15px"></div>
         </div>
 
         <div class="seccion" id="sec-B">
-            <h3 style="margin:0">Lado B</h3>
-            <input type="file" id="f-B" accept="image/*" style="font-size:10px">
+            <h3>Lado B</h3>
+            <input type="file" id="f-B" accept="image/*">
             <button class="btn-accion" style="background:var(--s)" onclick="scan('B')">🔍 Leer Foto</button>
-            <textarea id="l-B" placeholder="Letras aquí..."></textarea>
-            <textarea id="p-B" placeholder="Palabras a buscar..."></textarea>
-            <button class="btn-accion" style="background:var(--p)" onclick="gen('B')">🏗️ Generar Tablero</button>
+            <textarea id="l-B" placeholder="Letras..."></textarea>
+            <textarea id="p-B" placeholder="Palabras..."></textarea>
+            <button class="btn-accion" style="background:var(--p)" onclick="gen('B')">🏗️ Generar</button>
             <div class="grid-wrapper"><div id="g-B" class="grid"></div></div>
-            <div id="list-B" style="margin-top:10px"></div>
+            <div id="list-B" style="margin-top:15px"></div>
         </div>
     </div>
 
 <script>
     const MI_ID = "YO";
-    let dataSopa = { A: {grid:[], map:{}, clicks: {}}, B: {grid:[], map:{}, clicks: {}} };
+    let dataSopa = { A: {grid:[], map:{}, clicks:{}}, B: {grid:[], map:{}, clicks:{}} };
 
     async function check() {
         try {
@@ -113,22 +109,6 @@
 
         lines.forEach((rowStr, r) => {
             const divRow = document.createElement('div'); divRow.className = 'row';
-            
-            // BOTÓN DE FILA (GRANDE PARA MÓVIL)
-            const btn = document.createElement('div');
-            btn.className = 'btn-fila';
-            btn.textContent = '▶';
-            btn.onclick = () => {
-                const ahora = Date.now();
-                if (ahora - (dataSopa[lado].clicks[r] || 0) < 300) {
-                    borrarFila(lado, r);
-                } else {
-                    marcarFila(lado, r);
-                }
-                dataSopa[lado].clicks[r] = ahora;
-            };
-            divRow.appendChild(btn);
-
             rowStr.split('').forEach((char, c) => {
                 const cell = document.createElement('div'); cell.className = 'cell';
                 cell.id = `c-${lado}-${r}-${c}`; cell.textContent = char;
@@ -137,25 +117,36 @@
             gEl.appendChild(divRow);
         });
 
-        const words = document.getElementById(`p-${lado}`).value.toUpperCase().split(/[\s,]+/);
-        words.filter(w => w.length > 1).forEach(w => {
-            const span = document.createElement('span'); span.className = 'p-item';
-            span.textContent = w;
-            span.onclick = () => togglePalabra(lado, w, span);
-            lEl.appendChild(span);
-            find(lado, w);
+        const pLines = document.getElementById(`p-${lado}`).value.toUpperCase().split('\n');
+        pLines.forEach((line, idx) => {
+            if(line.trim() === "") return;
+            const words = line.split(/[\s,]+/).filter(w => w.length > 1);
+            
+            const filaDiv = document.createElement('div'); filaDiv.className = 'fila-palabras';
+            
+            const btn = document.createElement('button');
+            btn.className = 'btn-fila-palabras';
+            btn.textContent = '▶';
+            btn.onclick = () => {
+                const ahora = Date.now();
+                const esDoble = ahora - (dataSopa[lado].clicks[idx] || 0) < 300;
+                words.forEach(w => togglePalabra(lado, w, null, true, esDoble));
+                dataSopa[lado].clicks[idx] = ahora;
+            };
+            
+            const itemsCont = document.createElement('div'); itemsCont.className = 'contenedor-items';
+            words.forEach(w => {
+                const span = document.createElement('span'); span.className = 'p-item';
+                span.id = `p-${lado}-${w}`; span.textContent = w;
+                span.onclick = () => togglePalabra(lado, w, span);
+                itemsCont.appendChild(span);
+                find(lado, w);
+            });
+            
+            filaDiv.appendChild(btn);
+            filaDiv.appendChild(itemsCont);
+            lEl.appendChild(filaDiv);
         });
-    }
-
-    function marcarFila(lado, r) {
-        const cells = document.querySelectorAll(`[id^="c-${lado}-${r}-"]`);
-        const color = "#ffff99";
-        cells.forEach(c => c.style.background = (c.style.background === '' || c.style.background === 'white') ? color : 'white');
-    }
-
-    function borrarFila(lado, r) {
-        const cells = document.querySelectorAll(`[id^="c-${lado}-${r}-"]`);
-        cells.forEach(c => { c.textContent = ''; c.style.background = '#ffcccc'; });
     }
 
     function find(lado, word) {
@@ -180,16 +171,20 @@
         }
     }
 
-    function togglePalabra(lado, w, span) {
-        const d = dataSopa[lado].map[w];
-        if(!d) return;
-        const yaMarcada = span.style.background !== '';
+    function togglePalabra(lado, w, span, forzar = false, borrar = false) {
+        const d = dataSopa[lado].map[w]; if(!d) return;
+        const elSpan = span || document.getElementById(`p-${lado}-${w}`);
+        const activa = elSpan.style.background !== '';
+        
         d.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            el.style.background = yaMarcada ? 'white' : d.color;
-            yaMarcada ? el.classList.remove('active') : el.classList.add('active');
+            if(borrar) { el.textContent = ''; el.style.background = '#ffcccc'; }
+            else {
+                el.style.background = (forzar ? (activa ? 'white' : d.color) : (activa ? 'white' : d.color));
+                (activa && !forzar) ? el.classList.remove('active') : el.classList.add('active');
+            }
         });
-        span.style.background = yaMarcada ? '' : d.color;
+        if(elSpan) elSpan.style.background = (activa && !forzar) ? '' : d.color;
     }
 </script>
 </body>
