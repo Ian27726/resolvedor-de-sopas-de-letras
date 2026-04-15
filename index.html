@@ -32,8 +32,8 @@
             <h2>Lado A</h2>
             <input type="file" id="file-A" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('A')">🔍 Leer Foto A</button>
-            <textarea id="letras-A" placeholder="Letras..."></textarea>
-            <textarea id="palabras-A" placeholder="Palabras..."></textarea>
+            <textarea id="letras-A" placeholder="Letras de la sopa..."></textarea>
+            <textarea id="palabras-A" placeholder="Palabras a buscar..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Sopa A</button>
             <div id="grid-A" class="grid"></div>
             <div id="lista-A"></div>
@@ -43,8 +43,8 @@
             <h2>Lado B</h2>
             <input type="file" id="file-B" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('B')">🔍 Leer Foto B</button>
-            <textarea id="letras-B" placeholder="Letras..."></textarea>
-            <textarea id="palabras-B" placeholder="Palabras..."></textarea>
+            <textarea id="letras-B" placeholder="Letras de la sopa..."></textarea>
+            <textarea id="palabras-B" placeholder="Palabras a buscar..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Sopa B</button>
             <div id="grid-B" class="grid"></div>
             <div id="lista-B"></div>
@@ -54,8 +54,8 @@
     <button onclick="escucharVoz()" class="btn-voice">🎤 Dime una palabra...</button>
 
 <script>
-    const MI_ID = "YO"; 
-    const LINK_PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"); 
+    const MI_ID = "YO"; //
+    const LINK_PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"); //
 
     let sopas = { A: { grid:[], map:{}, active:new Set() }, B: { grid:[], map:{}, active:new Set() } };
 
@@ -65,13 +65,16 @@
             const res = await fetch(LINK_PASTEBIN);
             const json = await res.json();
             const data = json.contents.toUpperCase();
-            if (data.includes(MI_ID.toUpperCase())) {
+            
+            if (data.includes(MI_ID.toUpperCase())) { //
                 document.getElementById('contenido-protegido').style.display = 'flex';
                 document.getElementById('bloqueo-total').style.display = 'none';
             } else {
-                document.querySelector('#bloqueo-total h1').textContent = "⚠️ ACCESO DENEGADO";
+                document.querySelector('#bloqueo-total h1').textContent = "⚠️ ID NO AUTORIZADO";
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            document.querySelector('#bloqueo-total h1').textContent = "⚠️ ERROR DE RED";
+        }
     }
 
     async function escanear(lado) {
@@ -87,6 +90,7 @@
         const letras = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
         sopas[lado].grid = letras;
         const pRaw = document.getElementById(`palabras-${lado}`).value.toUpperCase().replace(/,/g, ' ').split(/\s+/).filter(w => w.length > 0);
+        
         const gEl = document.getElementById(`grid-${lado}`);
         const lEl = document.getElementById(`lista-${lado}`);
         gEl.innerHTML = ''; lEl.innerHTML = ''; sopas[lado].map = {}; sopas[lado].active.clear();
@@ -141,7 +145,10 @@
         set.has(pN) ? set.delete(pN) : set.add(pN);
         data.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            if(el) el.style.backgroundColor = set.has(pN) ? data.color : 'white';
+            if(el) {
+                el.style.backgroundColor = set.has(pN) ? data.color : 'white';
+                set.has(pN) ? el.classList.add('active') : el.classList.remove('active');
+            }
         });
         document.getElementById(`p-${lado}-${pN}`).style.backgroundColor = set.has(pN) ? data.color : '#f0f0f0';
     }
@@ -155,7 +162,7 @@
                 const p = Object.keys(sopas[lado].map).find(x => cmd.includes(x));
                 if(p) {
                     const loc = sopas[lado].map[p].start;
-                    const ut = new SpeechSynthesisUtterance(`Sopa ${lado}, ${p} en fila ${loc.r}, columna ${loc.c}`);
+                    const ut = new SpeechSynthesisUtterance(`Sopa ${lado}, ${p} esta en fila ${loc.r}, columna ${loc.c}`);
                     window.speechSynthesis.speak(ut);
                     if(!sopas[lado].active.has(p)) toggle(lado, p);
                 }
