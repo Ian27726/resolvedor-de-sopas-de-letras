@@ -2,70 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sopa VIP - Control de Filas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sopa VIP Móvil</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
         :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
-        body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 10px; }
+        body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 5px; touch-action: manipulation; }
         #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #app { display: none; flex-direction: column; gap: 20px; align-items: center; padding-top: 50px; }
-        .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; gap: 10px; z-index: 500; }
-        .seccion { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; max-width: 600px; }
-        textarea { width: 100%; height: 60px; font-size: 10px; margin: 5px 0; }
-        .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; margin-top: 10px; }
+        #app { display: none; flex-direction: column; gap: 15px; align-items: center; padding-top: 60px; width: 100%; }
+        
+        .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; gap: 5px; z-index: 500; height: 45px; align-items: center; }
+        .config-bar select { height: 35px; border-radius: 5px; }
+        
+        .seccion { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; box-sizing: border-box; }
+        textarea { width: 100%; height: 60px; font-size: 11px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+        
+        .grid-wrapper { overflow-x: auto; width: 100%; text-align: center; margin-top: 10px; }
+        .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; }
         .row { display: flex; align-items: center; }
-        .btn-fila { width: 18px; height: 18px; background: #999; border: none; border-radius: 3px; cursor: pointer; margin-right: 5px; font-size: 9px; color: white; }
-        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; }
+        
+        /* BOTÓN DE FILA MEJORADO */
+        .btn-fila { width: 28px; height: 28px; background: #666; border: 1px solid white; border-radius: 4px; cursor: pointer; margin-right: 5px; color: white; font-size: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        
+        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; }
         .cell.active { outline: 2px solid black; z-index: 5; }
-        button { border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .p-item { display: inline-block; padding: 5px 10px; background: #eee; margin: 3px; border-radius: 15px; font-size: 12px; cursor: pointer; border: 1px solid #ccc; }
+        
+        .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; font-size: 14px; }
+        .p-item { display: inline-block; padding: 8px 12px; background: #eee; margin: 3px; border-radius: 15px; font-size: 13px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; }
+        
+        .modo-single #sec-B { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2></div>
+    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2><p>ID: YO</p></div>
 
     <div class="config-bar">
         <select id="mode" onchange="document.getElementById('app').className = this.value">
-            <option value="modo-dual">Dos Sopas</option>
-            <option value="modo-single">Una Sola Sopa</option>
+            <option value="modo-dual">2 Sopas</option>
+            <option value="modo-single">1 Sopa</option>
         </select>
-        <button style="background:var(--danger)" onclick="limpiar('A')">Limpiar A</button>
-        <button style="background:var(--danger)" onclick="limpiar('B')">Limpiar B</button>
+        <button type="button" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:4px;" onclick="limpiar('A')">Limpiar A</button>
+        <button type="button" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:4px;" onclick="limpiar('B')">Limpiar B</button>
     </div>
 
-    <div id="app">
+    <div id="app" class="modo-dual">
         <div class="seccion" id="sec-A">
-            <h3>Lado A</h3>
-            <input type="file" id="f-A" accept="image/*">
-            <button style="background:var(--s); width:100%" onclick="scan('A')">🔍 Escanear Foto</button>
-            <textarea id="l-A" placeholder="Letras..."></textarea>
-            <textarea id="p-A" placeholder="Palabras..."></textarea>
-            <button style="background:var(--p); width:100%" onclick="gen('A')">🏗️ Generar Sopa</button>
-            <div id="g-A" class="grid"></div>
-            <div id="list-A"></div>
+            <h3 style="margin:0">Lado A</h3>
+            <input type="file" id="f-A" accept="image/*" style="font-size:10px">
+            <button class="btn-accion" style="background:var(--s)" onclick="scan('A')">🔍 Leer Foto</button>
+            <textarea id="l-A" placeholder="Letras aquí..."></textarea>
+            <textarea id="p-A" placeholder="Palabras a buscar..."></textarea>
+            <button class="btn-accion" style="background:var(--p)" onclick="gen('A')">🏗️ Generar Tablero</button>
+            <div class="grid-wrapper"><div id="g-A" class="grid"></div></div>
+            <div id="list-A" style="margin-top:10px"></div>
         </div>
 
         <div class="seccion" id="sec-B">
-            <h3>Lado B</h3>
-            <input type="file" id="f-B" accept="image/*">
-            <button style="background:var(--s); width:100%" onclick="scan('B')">🔍 Escanear Foto</button>
-            <textarea id="l-B" placeholder="Letras..."></textarea>
-            <textarea id="p-B" placeholder="Palabras..."></textarea>
-            <button style="background:var(--p); width:100%" onclick="gen('B')">🏗️ Generar Sopa</button>
-            <div id="g-B" class="grid"></div>
-            <div id="list-B"></div>
+            <h3 style="margin:0">Lado B</h3>
+            <input type="file" id="f-B" accept="image/*" style="font-size:10px">
+            <button class="btn-accion" style="background:var(--s)" onclick="scan('B')">🔍 Leer Foto</button>
+            <textarea id="l-B" placeholder="Letras aquí..."></textarea>
+            <textarea id="p-B" placeholder="Palabras a buscar..."></textarea>
+            <button class="btn-accion" style="background:var(--p)" onclick="gen('B')">🏗️ Generar Tablero</button>
+            <div class="grid-wrapper"><div id="g-B" class="grid"></div></div>
+            <div id="list-B" style="margin-top:10px"></div>
         </div>
     </div>
 
 <script>
     const MI_ID = "YO";
-    let dataSopa = { A: {grid:[], map:{}}, B: {grid:[], map:{}} };
+    let dataSopa = { A: {grid:[], map:{}, clicks: {}}, B: {grid:[], map:{}, clicks: {}} };
 
     async function check() {
         try {
-            const r = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"));
+            const r = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe") + "&t=" + Date.now());
             const j = await r.json();
             if (j.contents.toUpperCase().includes(MI_ID)) {
                 document.getElementById('app').style.display = 'flex';
@@ -80,35 +91,42 @@
         document.getElementById(`p-${lado}`).value = '';
         document.getElementById(`g-${lado}`).innerHTML = '';
         document.getElementById(`list-${lado}`).innerHTML = '';
+        dataSopa[lado].map = {};
     }
 
     async function scan(lado) {
         const file = document.getElementById(`f-${lado}`).files[0];
         if(!file) return;
         Tesseract.recognize(file, 'spa').then(({data:{text}}) => {
-            document.getElementById(`l-${lado}`).value = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').filter(l => l.length > 3).join('\n');
+            const limpio = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').filter(l => l.length > 3).join('\n');
+            document.getElementById(`l-${lado}`).value = limpio;
         });
     }
 
     function gen(lado) {
         const lines = document.getElementById(`l-${lado}`).value.trim().toUpperCase().split('\n');
-        dataSopa[lado].grid = lines;
         const gEl = document.getElementById(`g-${lado}`);
         const lEl = document.getElementById(`list-${lado}`);
         gEl.innerHTML = ''; lEl.innerHTML = '';
+        dataSopa[lado].grid = lines;
+        dataSopa[lado].map = {};
 
         lines.forEach((rowStr, r) => {
-            const divRow = document.createElement('div'); 
-            divRow.className = 'row';
-            divRow.id = `row-${lado}-${r}`;
-
-            // BOTÓN DE FILA
-            const btn = document.createElement('button');
+            const divRow = document.createElement('div'); divRow.className = 'row';
+            
+            // BOTÓN DE FILA (GRANDE PARA MÓVIL)
+            const btn = document.createElement('div');
             btn.className = 'btn-fila';
             btn.textContent = '▶';
-            btn.onclick = () => marcarFila(lado, r);
-            btn.ondblclick = () => borrarFila(lado, r);
-            
+            btn.onclick = () => {
+                const ahora = Date.now();
+                if (ahora - (dataSopa[lado].clicks[r] || 0) < 300) {
+                    borrarFila(lado, r);
+                } else {
+                    marcarFila(lado, r);
+                }
+                dataSopa[lado].clicks[r] = ahora;
+            };
             divRow.appendChild(btn);
 
             rowStr.split('').forEach((char, c) => {
@@ -130,19 +148,14 @@
     }
 
     function marcarFila(lado, r) {
-        const rowDiv = document.getElementById(`row-${lado}-${r}`);
-        const cells = rowDiv.querySelectorAll('.cell');
-        const color = "#ffff99"; // Color para remarcar
-        cells.forEach(c => c.style.background = c.style.background === '' ? color : '');
+        const cells = document.querySelectorAll(`[id^="c-${lado}-${r}-"]`);
+        const color = "#ffff99";
+        cells.forEach(c => c.style.background = (c.style.background === '' || c.style.background === 'white') ? color : 'white');
     }
 
     function borrarFila(lado, r) {
-        const rowDiv = document.getElementById(`row-${lado}-${r}`);
-        const cells = rowDiv.querySelectorAll('.cell');
-        cells.forEach(c => {
-            c.textContent = ''; // Borra la letra
-            c.style.background = '#ffcccc'; // Color de borrado
-        });
+        const cells = document.querySelectorAll(`[id^="c-${lado}-${r}-"]`);
+        cells.forEach(c => { c.textContent = ''; c.style.background = '#ffcccc'; });
     }
 
     function find(lado, word) {
