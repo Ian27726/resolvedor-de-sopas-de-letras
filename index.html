@@ -3,75 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopa VIP - Control Final</title>
+    <title>Sopa VIP Final</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
         :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
         body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 5px; touch-action: manipulation; }
         #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app { display: none; flex-direction: column; gap: 15px; align-items: center; padding-top: 60px; width: 100%; }
-        .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; gap: 5px; z-index: 500; height: 45px; align-items: center; }
+        .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; justify-content: center; z-index: 500; height: 45px; align-items: center; }
+        .config-bar select { height: 35px; border-radius: 5px; width: 80%; }
         .seccion { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; box-sizing: border-box; }
         textarea { width: 100%; height: 60px; font-size: 11px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
         .grid-wrapper { overflow-x: auto; width: 100%; text-align: center; margin-top: 10px; }
         .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; }
         .row { display: flex; }
-        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; transition: 0.2s; }
-        
-        /* BORDE NEGRO REMARCADO */
-        .cell.active { outline: 2px solid black; z-index: 5; border-color: black; }
-        
+        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; }
+        .cell.active { outline: 2px solid black; z-index: 5; }
         .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
-        
-        /* CONTENEDOR DE FILAS DE PALABRAS */
+        .instruccion { background: #fffde7; padding: 8px; border-radius: 5px; font-size: 11px; color: #555; border: 1px dashed #fbc02d; margin-bottom: 8px; text-align: center; }
         .fila-palabras { display: flex; align-items: center; background: #fff; margin: 8px 0; padding: 8px; border-radius: 10px; border: 1.5px solid #ddd; }
-        .btn-fila-palabras { width: 32px; height: 32px; background: #555; color: white; border: none; border-radius: 5px; margin-right: 12px; flex-shrink: 0; font-weight: bold; font-size: 18px; }
+        .btn-fila-palabras { width: 35px; height: 35px; background: #555; color: white; border: none; border-radius: 5px; margin-right: 12px; flex-shrink: 0; font-weight: bold; }
         .contenedor-items { display: flex; flex-wrap: wrap; gap: 6px; }
-        .p-item { padding: 8px 12px; background: #f0f0f0; border-radius: 15px; font-size: 11px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; text-transform: uppercase; }
-        
+        .p-item { padding: 8px 12px; background: #f0f0f0; border-radius: 15px; font-size: 11px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; }
         .modo-single #sec-B { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2><p>ID: YO</p></div>
+    <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2></div>
 
     <div class="config-bar">
         <select id="mode" onchange="document.getElementById('app').className = this.value">
-            <option value="modo-dual">2 Sopas</option>
-            <option value="modo-single">1 Sopa</option>
+            <option value="modo-dual">Vista Dual (Lado A y B)</option>
+            <option value="modo-single">Vista Única (Lado A)</option>
         </select>
-        <button type="button" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:4px;" onclick="limpiar('A')">Borrar Lado A</button>
-        <button type="button" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:4px;" onclick="limpiar('B')">Borrar Lado B</button>
     </div>
 
     <div id="app" class="modo-dual">
         <div class="seccion" id="sec-A">
-            <h3 style="margin:0">Tablero A</h3>
+            <h3 style="margin:0">Lado A</h3>
             <input type="file" id="f-A" accept="image/*">
             <button class="btn-accion" style="background:var(--s)" onclick="scan('A')">🔍 Escanear Foto</button>
-            <textarea id="l-A" placeholder="Letras de la sopa..."></textarea>
-            <textarea id="p-A" placeholder="Palabras a buscar (puedes agruparlas por líneas)..."></textarea>
+            <textarea id="l-A" placeholder="Letras..."></textarea>
+            <textarea id="p-A" placeholder="Palabras..."></textarea>
             <button class="btn-accion" style="background:var(--p)" onclick="gen('A')">🏗️ Generar Sopa</button>
+            <div id="list-A" style="margin-top:15px"></div>
             <div class="grid-wrapper"><div id="g-A" class="grid"></div></div>
-            <div id="list-A"></div>
         </div>
 
         <div class="seccion" id="sec-B">
-            <h3 style="margin:0">Tablero B</h3>
+            <h3 style="margin:0">Lado B</h3>
             <input type="file" id="f-B" accept="image/*">
             <button class="btn-accion" style="background:var(--s)" onclick="scan('B')">🔍 Escanear Foto</button>
-            <textarea id="l-B" placeholder="Letras de la sopa..."></textarea>
-            <textarea id="p-B" placeholder="Palabras a buscar..."></textarea>
+            <textarea id="l-B" placeholder="Letras..."></textarea>
+            <textarea id="p-B" placeholder="Palabras..."></textarea>
             <button class="btn-accion" style="background:var(--p)" onclick="gen('B')">🏗️ Generar Sopa</button>
+            <div id="list-B" style="margin-top:15px"></div>
             <div class="grid-wrapper"><div id="g-B" class="grid"></div></div>
-            <div id="list-B"></div>
         </div>
     </div>
 
 <script>
     const MI_ID = "YO";
-    let dataSopa = { A: {grid:[], map:{}, toggles:{}}, B: {grid:[], map:{}, toggles:{}} };
+    let dataSopa = { A: {grid:[], map:{}}, B: {grid:[], map:{}} };
 
     async function check() {
         try {
@@ -84,14 +78,6 @@
         } catch (e) { setTimeout(check, 2000); }
     }
     check();
-
-    function limpiar(lado) {
-        document.getElementById(`l-${lado}`).value = '';
-        document.getElementById(`p-${lado}`).value = '';
-        document.getElementById(`g-${lado}`).innerHTML = '';
-        document.getElementById(`list-${lado}`).innerHTML = '';
-        dataSopa[lado].map = {};
-    }
 
     async function scan(lado) {
         const file = document.getElementById(`f-${lado}`).files[0];
@@ -108,11 +94,16 @@
         gEl.innerHTML = ''; lEl.innerHTML = '';
         dataSopa[lado].grid = lines;
         dataSopa[lado].map = {};
-        dataSopa[lado].toggles = {};
+
+        // Agregar instrucción arriba de los botones
+        const info = document.createElement('div');
+        info.className = 'instruccion';
+        info.innerHTML = "💡 <b>Un toque:</b> Marcar fila | <b>Dos toques:</b> Borrar fila de la sopa";
+        lEl.appendChild(info);
 
         lines.forEach((rowStr, r) => {
             const divRow = document.createElement('div'); divRow.className = 'row';
-            rowStr.split('').forEach((char, c) => {
+            rowStr.replace(/\s/g, '').split('').forEach((char, c) => {
                 const cell = document.createElement('div'); cell.className = 'cell';
                 cell.id = `c-${lado}-${r}-${c}`; cell.textContent = char;
                 divRow.appendChild(cell);
@@ -124,23 +115,16 @@
         pLines.forEach((line, idx) => {
             if(line.trim() === "") return;
             const words = line.split(/[\s,]+/).filter(w => w.length > 1);
-            
             const filaDiv = document.createElement('div'); filaDiv.className = 'fila-palabras';
-            
             const btn = document.createElement('button');
-            btn.className = 'btn-fila-palabras';
-            btn.textContent = '▶';
+            btn.className = 'btn-fila-palabras'; btn.textContent = '▶';
             
-            // LÓGICA DE BOTÓN: TOCAR PARA MARCAR / DOBLE TOQUE PARA VOLVER A NORMAL
             let timer = 0;
             btn.onclick = () => {
                 timer++;
                 setTimeout(() => {
-                    if(timer === 1) { // Un toque: Marcar todas de la fila
-                        words.forEach(w => togglePalabra(lado, w, true));
-                    } else if(timer === 2) { // Doble toque: Quitar color (Sopa normal)
-                        words.forEach(w => togglePalabra(lado, w, false));
-                    }
+                    if(timer === 1) words.forEach(w => togglePalabra(lado, w, true));
+                    else if(timer === 2) words.forEach(w => togglePalabra(lado, w, false, true));
                     timer = 0;
                 }, 250);
             };
@@ -153,16 +137,14 @@
                 itemsCont.appendChild(span);
                 find(lado, w);
             });
-            
-            filaDiv.appendChild(btn);
-            filaDiv.appendChild(itemsCont);
+            filaDiv.appendChild(btn); filaDiv.appendChild(itemsCont);
             lEl.appendChild(filaDiv);
         });
     }
 
     function find(lado, word) {
-        const w = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const grid = dataSopa[lado].grid;
+        const w = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
+        const grid = dataSopa[lado].grid.map(row => row.replace(/\s/g, ''));
         const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
         for(let r=0; r<grid.length; r++) {
             for(let c=0; c<grid[r].length; c++) {
@@ -182,25 +164,18 @@
         }
     }
 
-    function togglePalabra(lado, w, forzarEstado = null) {
+    function togglePalabra(lado, w, forzarEstado = null, borrarPermanente = false) {
         const d = dataSopa[lado].map[w]; if(!d) return;
         const span = document.getElementById(`p-${lado}-${w}`);
-        
-        // Si forzarEstado es true, marcamos. Si es false, limpiamos. Si es null, invertimos.
-        const estaActiva = span.style.background !== '';
-        const nuevoEstado = (forzarEstado !== null) ? forzarEstado : !estaActiva;
-
+        const activa = span.style.background !== '';
+        const nuevoEstado = (forzarEstado !== null) ? forzarEstado : !activa;
         d.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            if(nuevoEstado) {
-                el.style.background = d.color;
-                el.classList.add('active'); // Aplica borde negro
-            } else {
-                el.style.background = 'white';
-                el.classList.remove('active'); // Quita borde y color
-            }
+            if(borrarPermanente) { el.textContent = ''; el.style.background = '#ffcccc'; }
+            else if(nuevoEstado) { el.style.background = d.color; el.classList.add('active'); }
+            else { el.style.background = 'white'; el.classList.remove('active'); }
         });
-        span.style.background = nuevoEstado ? d.color : '';
+        if(!borrarPermanente) span.style.background = nuevoEstado ? d.color : '';
     }
 </script>
 </body>
