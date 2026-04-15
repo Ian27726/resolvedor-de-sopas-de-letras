@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopa VIP - Borrado Forzado</title>
+    <title>Sopa VIP - Botón Eliminar</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
-        :root { --p: #2196f3; --s: #673ab7; }
+        :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
         body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 5px; touch-action: manipulation; }
-        #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; align-items: center; justify-content: center; }
         #app { display: none; flex-direction: column; gap: 15px; align-items: center; padding-top: 60px; width: 100%; }
         .config-bar { position: fixed; top: 0; left: 0; right: 0; background: #333; padding: 10px; display: flex; justify-content: center; z-index: 500; height: 45px; align-items: center; }
-        .config-bar select { height: 35px; border-radius: 5px; width: 80%; }
         .seccion { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95%; box-sizing: border-box; }
         textarea { width: 100%; height: 60px; font-size: 11px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
         .grid-wrapper { overflow-x: auto; width: 100%; text-align: center; margin-top: 10px; }
         .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; }
         .row { display: flex; }
-        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; transition: background 0.2s; }
-        .cell.active { outline: 2px solid black; z-index: 5; }
+        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; }
+        .cell.active { outline: 2px solid black; z-index: 5; border-color: black; }
         .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
-        .instruccion { background: #fffde7; padding: 8px; border-radius: 5px; font-size: 11px; color: #555; border: 1px dashed #fbc02d; margin-bottom: 8px; text-align: center; }
-        .fila-palabras { display: flex; align-items: center; background: #fff; margin: 8px 0; padding: 8px; border-radius: 10px; border: 1.5px solid #ddd; }
-        .btn-fila-palabras { width: 35px; height: 35px; background: #555; color: white; border: none; border-radius: 5px; margin-right: 12px; flex-shrink: 0; font-weight: bold; }
-        .contenedor-items { display: flex; flex-wrap: wrap; gap: 6px; }
-        .p-item { padding: 8px 12px; background: #f0f0f0; border-radius: 15px; font-size: 11px; cursor: pointer; border: 1px solid #ccc; font-weight: bold; }
+        .fila-palabras { display: flex; align-items: center; background: #fff; margin: 8px 0; padding: 8px; border-radius: 10px; border: 1.5px solid #ddd; justify-content: space-between; gap: 5px; }
+        .contenedor-items { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+        .p-item { padding: 8px 12px; background: #f0f0f0; border-radius: 15px; font-size: 11px; font-weight: bold; border: 1px solid #ccc; }
+        .btn-fila { width: 40px; height: 40px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; flex-shrink: 0; font-size: 18px; }
+        .btn-marcar { background: #555; }
+        .btn-borrar { background: var(--danger); }
         .modo-single #sec-B { display: none; }
     </style>
 </head>
@@ -33,9 +33,9 @@
     <div id="bloqueo"><h2>🛡️ VALIDANDO ACCESO...</h2></div>
 
     <div class="config-bar">
-        <select id="mode" onchange="document.getElementById('app').className = this.value">
-            <option value="modo-dual">Vista Dual (Lado A y B)</option>
-            <option value="modo-single">Vista Única (Lado A)</option>
+        <select id="mode" onchange="document.getElementById('app').className = this.value" style="width:80%; height:30px;">
+            <option value="modo-dual">2 Sopas (Lado A y B)</option>
+            <option value="modo-single">1 Sopa (Lado A)</option>
         </select>
     </div>
 
@@ -47,7 +47,7 @@
             <textarea id="l-A" placeholder="Letras..."></textarea>
             <textarea id="p-A" placeholder="Palabras..."></textarea>
             <button class="btn-accion" style="background:var(--p)" onclick="gen('A')">🏗️ Generar Sopa</button>
-            <div id="list-A" style="margin-top:15px"></div>
+            <div id="list-A" style="margin-top:10px"></div>
             <div class="grid-wrapper"><div id="g-A" class="grid"></div></div>
         </div>
 
@@ -58,14 +58,14 @@
             <textarea id="l-B" placeholder="Letras..."></textarea>
             <textarea id="p-B" placeholder="Palabras..."></textarea>
             <button class="btn-accion" style="background:var(--p)" onclick="gen('B')">🏗️ Generar Sopa</button>
-            <div id="list-B" style="margin-top:15px"></div>
+            <div id="list-B" style="margin-top:10px"></div>
             <div class="grid-wrapper"><div id="g-B" class="grid"></div></div>
         </div>
     </div>
 
 <script>
     const MI_ID = "YO";
-    let dataSopa = { A: {grid:[], map:{}, clickTimers: {}}, B: {grid:[], map:{}, clickTimers: {}} };
+    let dataSopa = { A: {grid:[], map:{}}, B: {grid:[], map:{}} };
 
     async function check() {
         try {
@@ -95,11 +95,6 @@
         dataSopa[lado].grid = lines;
         dataSopa[lado].map = {};
 
-        const info = document.createElement('div');
-        info.className = 'instruccion';
-        info.innerHTML = "💡 <b>Un toque:</b> Marcar fila | <b>Dos toques:</b> Borrar fila de la sopa";
-        lEl.appendChild(info);
-
         lines.forEach((rowStr, r) => {
             const divRow = document.createElement('div'); divRow.className = 'row';
             rowStr.replace(/\s/g, '').split('').forEach((char, c) => {
@@ -111,27 +106,14 @@
         });
 
         const pLines = document.getElementById(`p-${lado}`).value.toUpperCase().split('\n');
-        pLines.forEach((line, idx) => {
+        pLines.forEach((line) => {
             if(line.trim() === "") return;
             const words = line.split(/[\s,]+/).filter(w => w.length > 1);
             const filaDiv = document.createElement('div'); filaDiv.className = 'fila-palabras';
-            const btn = document.createElement('button');
-            btn.className = 'btn-fila-palabras'; btn.textContent = '▶';
             
-            // LÓGICA DE CLIC FORZADO PARA MÓVILES
-            btn.onclick = (e) => {
-                e.preventDefault();
-                const ahora = Date.now();
-                const ultimoClic = dataSopa[lado].clickTimers[idx] || 0;
-                
-                if (ahora - ultimoClic < 400) { // Si el segundo toque es en < 400ms, es doble clic
-                    words.forEach(w => togglePalabra(lado, w, false, true));
-                    dataSopa[lado].clickTimers[idx] = 0; // Resetear
-                } else {
-                    words.forEach(w => togglePalabra(lado, w, true));
-                    dataSopa[lado].clickTimers[idx] = ahora; // Guardar tiempo
-                }
-            };
+            const btnM = document.createElement('button');
+            btnM.className = 'btn-fila btn-marcar'; btnM.textContent = '▶';
+            btnM.onclick = () => words.forEach(w => togglePalabra(lado, w, true));
             
             const itemsCont = document.createElement('div'); itemsCont.className = 'contenedor-items';
             words.forEach(w => {
@@ -141,7 +123,14 @@
                 itemsCont.appendChild(span);
                 find(lado, w);
             });
-            filaDiv.appendChild(btn); filaDiv.appendChild(itemsCont);
+
+            const btnE = document.createElement('button');
+            btnE.className = 'btn-fila btn-borrar'; btnE.textContent = '🗑️';
+            btnE.onclick = () => words.forEach(w => togglePalabra(lado, w, false));
+            
+            filaDiv.appendChild(btnM);
+            filaDiv.appendChild(itemsCont);
+            filaDiv.appendChild(btnE);
             lEl.appendChild(filaDiv);
         });
     }
@@ -168,18 +157,15 @@
         }
     }
 
-    function togglePalabra(lado, w, forzarEstado = null, borrarPermanente = false) {
+    function togglePalabra(lado, w, estado) {
         const d = dataSopa[lado].map[w]; if(!d) return;
         const span = document.getElementById(`p-${lado}-${w}`);
-        const activa = span.style.background !== '';
-        const nuevoEstado = (forzarEstado !== null) ? forzarEstado : !activa;
         d.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            if(borrarPermanente) { el.textContent = ''; el.style.background = '#ffcccc'; el.classList.remove('active'); }
-            else if(nuevoEstado) { el.style.background = d.color; el.classList.add('active'); }
+            if(estado) { el.style.background = d.color; el.classList.add('active'); }
             else { el.style.background = 'white'; el.classList.remove('active'); }
         });
-        if(!borrarPermanente) span.style.background = nuevoEstado ? d.color : '';
+        span.style.background = estado ? d.color : '';
     }
 </script>
 </body>
