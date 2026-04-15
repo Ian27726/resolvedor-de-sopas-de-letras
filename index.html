@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopa VIP Final</title>
+    <title>Sopa VIP - Borrado Forzado</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
-        :root { --p: #2196f3; --s: #673ab7; --danger: #f44336; }
+        :root { --p: #2196f3; --s: #673ab7; }
         body { font-family: sans-serif; background: #eef2f3; margin: 0; padding: 5px; touch-action: manipulation; }
         #bloqueo { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app { display: none; flex-direction: column; gap: 15px; align-items: center; padding-top: 60px; width: 100%; }
@@ -17,7 +17,7 @@
         .grid-wrapper { overflow-x: auto; width: 100%; text-align: center; margin-top: 10px; }
         .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; }
         .row { display: flex; }
-        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; }
+        .cell { width: 22px; height: 22px; background: white; border: 0.5px solid #eee; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; flex-shrink: 0; transition: background 0.2s; }
         .cell.active { outline: 2px solid black; z-index: 5; }
         .btn-accion { border: none; color: white; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
         .instruccion { background: #fffde7; padding: 8px; border-radius: 5px; font-size: 11px; color: #555; border: 1px dashed #fbc02d; margin-bottom: 8px; text-align: center; }
@@ -65,7 +65,7 @@
 
 <script>
     const MI_ID = "YO";
-    let dataSopa = { A: {grid:[], map:{}}, B: {grid:[], map:{}} };
+    let dataSopa = { A: {grid:[], map:{}, clickTimers: {}}, B: {grid:[], map:{}, clickTimers: {}} };
 
     async function check() {
         try {
@@ -95,7 +95,6 @@
         dataSopa[lado].grid = lines;
         dataSopa[lado].map = {};
 
-        // Agregar instrucción arriba de los botones
         const info = document.createElement('div');
         info.className = 'instruccion';
         info.innerHTML = "💡 <b>Un toque:</b> Marcar fila | <b>Dos toques:</b> Borrar fila de la sopa";
@@ -119,14 +118,19 @@
             const btn = document.createElement('button');
             btn.className = 'btn-fila-palabras'; btn.textContent = '▶';
             
-            let timer = 0;
-            btn.onclick = () => {
-                timer++;
-                setTimeout(() => {
-                    if(timer === 1) words.forEach(w => togglePalabra(lado, w, true));
-                    else if(timer === 2) words.forEach(w => togglePalabra(lado, w, false, true));
-                    timer = 0;
-                }, 250);
+            // LÓGICA DE CLIC FORZADO PARA MÓVILES
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const ahora = Date.now();
+                const ultimoClic = dataSopa[lado].clickTimers[idx] || 0;
+                
+                if (ahora - ultimoClic < 400) { // Si el segundo toque es en < 400ms, es doble clic
+                    words.forEach(w => togglePalabra(lado, w, false, true));
+                    dataSopa[lado].clickTimers[idx] = 0; // Resetear
+                } else {
+                    words.forEach(w => togglePalabra(lado, w, true));
+                    dataSopa[lado].clickTimers[idx] = ahora; // Guardar tiempo
+                }
             };
             
             const itemsCont = document.createElement('div'); itemsCont.className = 'contenedor-items';
@@ -171,7 +175,7 @@
         const nuevoEstado = (forzarEstado !== null) ? forzarEstado : !activa;
         d.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            if(borrarPermanente) { el.textContent = ''; el.style.background = '#ffcccc'; }
+            if(borrarPermanente) { el.textContent = ''; el.style.background = '#ffcccc'; el.classList.remove('active'); }
             else if(nuevoEstado) { el.style.background = d.color; el.classList.add('active'); }
             else { el.style.background = 'white'; el.classList.remove('active'); }
         });
