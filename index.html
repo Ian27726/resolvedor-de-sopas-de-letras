@@ -2,44 +2,70 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sopa Dual VIP - Final</title>
+    <title>Sopa VIP Pro - Configurable</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
-        #bloqueo-total { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; text-align: center; padding-top: 100px; font-family: sans-serif; }
-        #contenido-protegido { display: none; flex-wrap: wrap; gap: 15px; justify-content: center; }
-        :root { --p-color: #2196f3; --s-color: #673ab7; }
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; margin: 0; padding: 10px; }
-        .seccion-sopa { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 47%; min-width: 350px; }
-        textarea { width: 95%; height: 60px; font-size: 10px; margin-top: 5px; }
-        .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; margin-top: 10px; }
+        :root { --p-color: #2196f3; --s-color: #673ab7; --bg: #eef2f3; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        
+        /* Bloqueo Seguridad */
+        #bloqueo-total { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; text-align: center; padding-top: 100px; }
+        
+        /* Configuración */
+        #config-panel { position: fixed; top: 10px; left: 10px; z-index: 1000; }
+        .config-btn { background: #444; color: white; border-radius: 50%; width: 40px; height: 40px; border: none; cursor: pointer; font-size: 20px; }
+        .config-menu { display: none; background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: 5px; }
+        
+        /* Layout */
+        #main-container { display: none; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 50px; }
+        .seccion-sopa { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex: 1; min-width: 350px; transition: all 0.3s; }
+        .modo-single .seccion-sopa:nth-child(2) { display: none; }
+        .modo-single .seccion-sopa { max-width: 800px; }
+
+        textarea { width: 95%; height: 80px; font-size: 11px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px; }
+        .grid { display: inline-block; background: #333; padding: 2px; border-radius: 4px; margin-top: 10px; }
         .grid-row { display: flex; }
-        .cell { width: 20px; height: 20px; background: white; border: 0.1px solid #eee; text-align: center; line-height: 20px; font-weight: bold; font-size: 11px; cursor: pointer; }
-        .cell.active { transform: scale(1.1); outline: 1.5px solid black; z-index: 5; }
-        button { width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; color: white; margin-top: 5px; }
-        .btn-voice { background: #ff5722; position: fixed; bottom: 20px; right: 20px; width: auto; padding: 12px 20px; border-radius: 50px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .p-item { display: inline-block; padding: 3px 8px; background: #f0f0f0; margin: 2px; border-radius: 10px; font-size: 10px; cursor: pointer; font-weight: bold; border: 1px solid #ccc; }
+        .cell { width: 24px; height: 24px; background: white; border: 0.1px solid #eee; text-align: center; line-height: 24px; font-weight: bold; font-size: 13px; }
+        .cell.active { transform: scale(1.1); outline: 2px solid #000; z-index: 5; }
+        
+        button { width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; color: white; margin-top: 5px; }
+        .btn-voice { background: #ff5722; position: fixed; bottom: 20px; right: 20px; width: auto; padding: 12px 25px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .p-item { display: inline-block; padding: 5px 10px; background: #f0f0f0; margin: 3px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; border: 1px solid #ccc; }
+        .btn-clear { background: #f44336 !important; font-size: 11px; padding: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body onload="verificarAcceso()">
 
-    <div id="bloqueo-total">
-        <h1 id="msg-bloqueo" style="color:#444;">🛡️ VALIDANDO LICENCIA...</h1>
-        <p>ID ACTUAL: <span id="id-label"></span></p>
+    <div id="bloqueo-total"><h1>🛡️ VALIDANDO ACCESO...</h1><p>ID: YO</p></div>
+
+    <div id="config-panel">
+        <button class="config-btn" onclick="toggleMenu()">⚙️</button>
+        <div id="menu" class="config-menu">
+            <h4>Configuración</h4>
+            <label>Modo de vista:</label><br>
+            <select id="view-mode" onchange="cambiarModo()">
+                <option value="dual">Dos Sopas</option>
+                <option value="single">Una Sola Sopa</option>
+            </select>
+            <hr>
+            <button class="btn-clear" onclick="limpiar('A')">🗑️ Borrar Lado A</button>
+            <button class="btn-clear" onclick="limpiar('B')">🗑️ Borrar Lado B</button>
+        </div>
     </div>
 
-    <div id="contenido-protegido">
-        <div class="seccion-sopa">
+    <div id="main-container">
+        <div class="seccion-sopa" id="sec-A">
             <h2>Lado A</h2>
             <input type="file" id="file-A" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('A')">🔍 Leer Foto A</button>
-            <textarea id="letras-A" placeholder="Letras..."></textarea>
-            <textarea id="palabras-A" placeholder="Palabras..."></textarea>
+            <textarea id="letras-A" placeholder="Letras (filas de la sopa)..."></textarea>
+            <textarea id="palabras-A" placeholder="Palabras (separadas por espacio o coma)..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Sopa A</button>
             <div id="grid-A" class="grid"></div>
-            <div id="lista-A"></div>
+            <div id="lista-A" style="margin-top:10px;"></div>
         </div>
 
-        <div class="seccion-sopa">
+        <div class="seccion-sopa" id="sec-B">
             <h2>Lado B</h2>
             <input type="file" id="file-B" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('B')">🔍 Leer Foto B</button>
@@ -47,59 +73,73 @@
             <textarea id="palabras-B" placeholder="Palabras..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Sopa B</button>
             <div id="grid-B" class="grid"></div>
-            <div id="lista-B"></div>
+            <div id="lista-B" style="margin-top:10px;"></div>
         </div>
     </div>
 
-    <button onclick="escucharVoz()" class="btn-voice">🎤 Dime una palabra...</button>
+    <button onclick="escucharVoz()" class="btn-voice">🎤 Dime palabra...</button>
 
 <script>
-    const MI_ID = "YO"; 
-    const URL_RAW = "https://pastebin.com/raw/nHP7auWe";
+    const MI_ID = "YO";
+    const PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe");
 
     let sopas = { A: { grid:[], map:{}, active:new Set() }, B: { grid:[], map:{}, active:new Set() } };
 
     async function verificarAcceso() {
-        document.getElementById('id-label').textContent = MI_ID;
         try {
-            // Intento con AllOrigins
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(URL_RAW)}&t=${Date.now()}`);
+            const res = await fetch(PASTEBIN);
             const json = await res.json();
-            const data = json.contents.toUpperCase();
-            
-            if (data.includes(MI_ID.toUpperCase())) {
-                document.getElementById('contenido-protegido').style.display = 'flex';
+            if (json.contents.toUpperCase().includes(MI_ID)) {
+                document.getElementById('main-container').style.display = 'flex';
                 document.getElementById('bloqueo-total').style.display = 'none';
-            } else {
-                document.getElementById('msg-bloqueo').textContent = "⚠️ ACCESO DENEGADO";
             }
-        } catch (e) {
-            document.getElementById('msg-bloqueo').textContent = "⚠️ ERROR DE RED - REINTENTANDO...";
-            setTimeout(verificarAcceso, 3000); // Reintenta solo si falla la red
-        }
+        } catch (e) { console.error(e); }
+    }
+
+    function toggleMenu() {
+        const m = document.getElementById('menu');
+        m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function cambiarModo() {
+        const modo = document.getElementById('view-mode').value;
+        const container = document.getElementById('main-container');
+        container.className = modo === 'single' ? 'modo-single' : '';
+    }
+
+    function limpiar(lado) {
+        document.getElementById(`letras-${lado}`).value = '';
+        document.getElementById(`palabras-${lado}`).value = '';
+        document.getElementById(`grid-${lado}`).innerHTML = '';
+        document.getElementById(`lista-${lado}`).innerHTML = '';
+        sopas[lado] = { grid:[], map:{}, active:new Set() };
     }
 
     async function escanear(lado) {
         const f = document.getElementById(`file-${lado}`).files[0];
         if(!f) return;
         Tesseract.recognize(f, 'spa').then(({data:{text}}) => {
-            const limpio = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').filter(l => l.length > 5).join('\n');
+            // Mejora en limpieza para evitar fallos en Lado A
+            const limpio = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 3).join('\n');
             document.getElementById(`letras-${lado}`).value = limpio;
         });
     }
 
     function generar(lado) {
-        const letras = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
-        sopas[lado].grid = letras;
+        const rawLetras = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
+        // Asegurar que todas las filas tengan el mismo largo
+        const maxLen = Math.max(...rawLetras.map(l => l.length));
+        sopas[lado].grid = rawLetras.map(l => l.padEnd(maxLen, ' '));
+        
         const pRaw = document.getElementById(`palabras-${lado}`).value.toUpperCase().replace(/,/g, ' ').split(/\s+/).filter(w => w.length > 0);
         
         const gEl = document.getElementById(`grid-${lado}`);
         const lEl = document.getElementById(`lista-${lado}`);
         gEl.innerHTML = ''; lEl.innerHTML = ''; sopas[lado].map = {}; sopas[lado].active.clear();
 
-        letras.forEach((fila, r) => {
+        sopas[lado].grid.forEach((fila, r) => {
             const row = document.createElement('div'); row.className = 'grid-row';
-            fila.trim().split('').forEach((l, c) => {
+            fila.split('').forEach((l, c) => {
                 const cell = document.createElement('div'); cell.className = 'cell';
                 cell.id = `c-${lado}-${r}-${c}`; cell.textContent = l;
                 row.appendChild(cell);
@@ -121,7 +161,7 @@
     function buscar(lado, palabra) {
         const p = norm(palabra); const grid = sopas[lado].grid;
         if(!grid.length) return;
-        const rows = grid.length; const cols = grid[0].trim().length;
+        const rows = grid.length; const cols = grid[0].length;
         const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
         for (let r=0; r<rows; r++) {
             for (let c=0; c<cols; c++) {
@@ -129,11 +169,11 @@
                     let co = [];
                     for (let i=0; i<p.length; i++) {
                         let nr = r+dr*i, nc = c+dc*i;
-                        if (nr<0||nr>=rows||nc<0||nc>=cols || norm(grid[nr].trim()[nc])!==p[i]) { co=[]; break; }
+                        if (nr<0||nr>=rows||nc<0||nc>=cols || norm(grid[nr][nc])!==p[i]) { co=[]; break; }
                         co.push(`${nr}-${nc}`);
                     }
                     if (co.length > 0) {
-                        sopas[lado].map[p] = { coords: co, start: {r: r+1, c: c+1}, color: `hsl(${Math.random()*360}, 70%, 80%)` };
+                        sopas[lado].map[p] = { coords: co, start: {r: r+1, c: c+1}, color: `hsl(${Math.random()*360}, 75%, 85%)` };
                         return true;
                     }
                 }
@@ -164,8 +204,7 @@
                 const p = Object.keys(sopas[lado].map).find(x => cmd.includes(x));
                 if(p) {
                     const loc = sopas[lado].map[p].start;
-                    const ut = new SpeechSynthesisUtterance(`${p} en Sopa ${lado}: fila ${loc.r}, columna ${loc.c}`);
-                    window.speechSynthesis.speak(ut);
+                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${p} en Sopa ${lado}: fila ${loc.r}, columna ${loc.c}`));
                     if(!sopas[lado].active.has(p)) toggle(lado, p);
                 }
             });
