@@ -2,13 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sopa Dual VIP - Seguridad</title>
+    <title>Sopa de Letras VIP - Dual</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
-        /* ESTILO DE BLOQUEO */
         #bloqueo-total { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; text-align: center; padding-top: 100px; font-family: sans-serif; }
         #contenido-protegido { display: none; flex-wrap: wrap; gap: 15px; justify-content: center; }
-
         :root { --p-color: #2196f3; --s-color: #673ab7; }
         body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; margin: 0; padding: 10px; }
         .seccion-sopa { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 47%; min-width: 350px; }
@@ -25,63 +23,55 @@
 <body onload="verificarAcceso()">
 
     <div id="bloqueo-total">
-        <h1 style="color:red;">⚠️ ACCESO DENEGADO</h1>
-        <p>No tienes permiso o no hay internet.</p>
-        <p style="font-size:12px; color:gray;">ID ACTUAL: <span id="id-label"></span></p>
+        <h1 style="color:red;">⚠️ VERIFICANDO ACCESO...</h1>
+        <p>ID ACTUAL: <span id="id-label"></span></p>
     </div>
 
     <div id="contenido-protegido">
-        <div style="width: 100%; text-align: center;">
-            <button onclick="window.print()" style="background:#333; width:150px;">🖨️ Imprimir</button>
-        </div>
-
         <div class="seccion-sopa">
-            <h2>Lado A (Capítulo 1)</h2>
+            <h2>Lado A</h2>
             <input type="file" id="file-A" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('A')">🔍 Leer Foto A</button>
-            <textarea id="letras-A" placeholder="Letras aquí..."></textarea>
-            <textarea id="palabras-A" placeholder="Palabras aquí..."></textarea>
-            <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Lado A</button>
+            <textarea id="letras-A" placeholder="Letras..."></textarea>
+            <textarea id="palabras-A" placeholder="Palabras..."></textarea>
+            <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Sopa A</button>
             <div id="grid-A" class="grid"></div>
             <div id="lista-A"></div>
         </div>
 
         <div class="seccion-sopa">
-            <h2>Lado B (Capítulo 2)</h2>
+            <h2>Lado B</h2>
             <input type="file" id="file-B" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('B')">🔍 Leer Foto B</button>
-            <textarea id="letras-B" placeholder="Letras aquí..."></textarea>
-            <textarea id="palabras-B" placeholder="Palabras aquí..."></textarea>
-            <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Lado B</button>
+            <textarea id="letras-B" placeholder="Letras..."></textarea>
+            <textarea id="palabras-B" placeholder="Palabras..."></textarea>
+            <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Sopa B</button>
             <div id="grid-B" class="grid"></div>
             <div id="lista-B"></div>
         </div>
     </div>
 
-    <button onclick="escucharVoz()" class="btn-voice">🎤 Dime tal palabra...</button>
+    <button onclick="escucharVoz()" class="btn-voice">🎤 Dime una palabra...</button>
 
 <script>
-    // ==========================================
-    // CONFIGURACIÓN (TUS DATOS)
-    // ==========================================
     const MI_ID = "YO"; 
-    const LINK_PASTEBIN = "https://pastebin.com/raw/nHP7auWe"; 
-    // ==========================================
+    const LINK_PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"); 
 
     let sopas = { A: { grid:[], map:{}, active:new Set() }, B: { grid:[], map:{}, active:new Set() } };
 
     async function verificarAcceso() {
         document.getElementById('id-label').textContent = MI_ID;
         try {
-            const res = await fetch(LINK_PASTEBIN + "?v=" + Math.random());
-            const data = await res.text();
-            if (data.toUpperCase().trim().includes(MI_ID.toUpperCase().trim())) {
+            const res = await fetch(LINK_PASTEBIN);
+            const json = await res.json();
+            const data = json.contents.toUpperCase();
+            if (data.includes(MI_ID.toUpperCase())) {
                 document.getElementById('contenido-protegido').style.display = 'flex';
                 document.getElementById('bloqueo-total').style.display = 'none';
+            } else {
+                document.querySelector('#bloqueo-total h1').textContent = "⚠️ ACCESO DENEGADO";
             }
-        } catch (e) {
-            alert("Error de conexión al verificar ID.");
-        }
+        } catch (e) { console.error(e); }
     }
 
     async function escanear(lado) {
@@ -94,15 +84,16 @@
     }
 
     function generar(lado) {
-        sopas[lado].grid = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
+        const letras = document.getElementById(`letras-${lado}`).value.trim().toUpperCase().split('\n');
+        sopas[lado].grid = letras;
         const pRaw = document.getElementById(`palabras-${lado}`).value.toUpperCase().replace(/,/g, ' ').split(/\s+/).filter(w => w.length > 0);
         const gEl = document.getElementById(`grid-${lado}`);
         const lEl = document.getElementById(`lista-${lado}`);
         gEl.innerHTML = ''; lEl.innerHTML = ''; sopas[lado].map = {}; sopas[lado].active.clear();
 
-        sopas[lado].grid.forEach((f, r) => {
+        letras.forEach((fila, r) => {
             const row = document.createElement('div'); row.className = 'grid-row';
-            f.trim().split('').forEach((l, c) => {
+            fila.trim().split('').forEach((l, c) => {
                 const cell = document.createElement('div'); cell.className = 'cell';
                 cell.id = `c-${lado}-${r}-${c}`; cell.textContent = l;
                 row.appendChild(cell);
@@ -150,8 +141,7 @@
         set.has(pN) ? set.delete(pN) : set.add(pN);
         data.coords.forEach(co => {
             const el = document.getElementById(`c-${lado}-${co}`);
-            el.style.backgroundColor = set.has(pN) ? data.color : 'white';
-            set.has(pN) ? el.classList.add('active') : el.classList.remove('active');
+            if(el) el.style.backgroundColor = set.has(pN) ? data.color : 'white';
         });
         document.getElementById(`p-${lado}-${pN}`).style.backgroundColor = set.has(pN) ? data.color : '#f0f0f0';
     }
@@ -165,7 +155,7 @@
                 const p = Object.keys(sopas[lado].map).find(x => cmd.includes(x));
                 if(p) {
                     const loc = sopas[lado].map[p].start;
-                    const ut = new SpeechSynthesisUtterance(`En el lado ${lado}, ${p} esta en fila ${loc.r}, columna ${loc.c}`);
+                    const ut = new SpeechSynthesisUtterance(`Sopa ${lado}, ${p} en fila ${loc.r}, columna ${loc.c}`);
                     window.speechSynthesis.speak(ut);
                     if(!sopas[lado].active.has(p)) toggle(lado, p);
                 }
