@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sopa de Letras VIP - Dual</title>
+    <title>Sopa Dual VIP - Final</title>
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
         #bloqueo-total { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; text-align: center; padding-top: 100px; font-family: sans-serif; }
@@ -13,7 +13,7 @@
         textarea { width: 95%; height: 60px; font-size: 10px; margin-top: 5px; }
         .grid { display: inline-block; background: #444; padding: 2px; border-radius: 4px; margin-top: 10px; }
         .grid-row { display: flex; }
-        .cell { width: 20px; height: 20px; background: white; border: 0.1px solid #eee; text-align: center; line-height: 20px; font-weight: bold; font-size: 11px; }
+        .cell { width: 20px; height: 20px; background: white; border: 0.1px solid #eee; text-align: center; line-height: 20px; font-weight: bold; font-size: 11px; cursor: pointer; }
         .cell.active { transform: scale(1.1); outline: 1.5px solid black; z-index: 5; }
         button { width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; border: none; color: white; margin-top: 5px; }
         .btn-voice { background: #ff5722; position: fixed; bottom: 20px; right: 20px; width: auto; padding: 12px 20px; border-radius: 50px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -23,7 +23,7 @@
 <body onload="verificarAcceso()">
 
     <div id="bloqueo-total">
-        <h1 style="color:red;">⚠️ VERIFICANDO ACCESO...</h1>
+        <h1 id="msg-bloqueo" style="color:#444;">🛡️ VALIDANDO LICENCIA...</h1>
         <p>ID ACTUAL: <span id="id-label"></span></p>
     </div>
 
@@ -32,8 +32,8 @@
             <h2>Lado A</h2>
             <input type="file" id="file-A" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('A')">🔍 Leer Foto A</button>
-            <textarea id="letras-A" placeholder="Letras de la sopa..."></textarea>
-            <textarea id="palabras-A" placeholder="Palabras a buscar..."></textarea>
+            <textarea id="letras-A" placeholder="Letras..."></textarea>
+            <textarea id="palabras-A" placeholder="Palabras..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('A')">🏗️ Generar Sopa A</button>
             <div id="grid-A" class="grid"></div>
             <div id="lista-A"></div>
@@ -43,8 +43,8 @@
             <h2>Lado B</h2>
             <input type="file" id="file-B" accept="image/*">
             <button style="background:var(--s-color)" onclick="escanear('B')">🔍 Leer Foto B</button>
-            <textarea id="letras-B" placeholder="Letras de la sopa..."></textarea>
-            <textarea id="palabras-B" placeholder="Palabras a buscar..."></textarea>
+            <textarea id="letras-B" placeholder="Letras..."></textarea>
+            <textarea id="palabras-B" placeholder="Palabras..."></textarea>
             <button style="background:var(--p-color)" onclick="generar('B')">🏗️ Generar Sopa B</button>
             <div id="grid-B" class="grid"></div>
             <div id="lista-B"></div>
@@ -54,26 +54,28 @@
     <button onclick="escucharVoz()" class="btn-voice">🎤 Dime una palabra...</button>
 
 <script>
-    const MI_ID = "YO"; //
-    const LINK_PASTEBIN = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://pastebin.com/raw/nHP7auWe"); //
+    const MI_ID = "YO"; 
+    const URL_RAW = "https://pastebin.com/raw/nHP7auWe";
 
     let sopas = { A: { grid:[], map:{}, active:new Set() }, B: { grid:[], map:{}, active:new Set() } };
 
     async function verificarAcceso() {
         document.getElementById('id-label').textContent = MI_ID;
         try {
-            const res = await fetch(LINK_PASTEBIN);
+            // Intento con AllOrigins
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(URL_RAW)}&t=${Date.now()}`);
             const json = await res.json();
             const data = json.contents.toUpperCase();
             
-            if (data.includes(MI_ID.toUpperCase())) { //
+            if (data.includes(MI_ID.toUpperCase())) {
                 document.getElementById('contenido-protegido').style.display = 'flex';
                 document.getElementById('bloqueo-total').style.display = 'none';
             } else {
-                document.querySelector('#bloqueo-total h1').textContent = "⚠️ ID NO AUTORIZADO";
+                document.getElementById('msg-bloqueo').textContent = "⚠️ ACCESO DENEGADO";
             }
         } catch (e) {
-            document.querySelector('#bloqueo-total h1').textContent = "⚠️ ERROR DE RED";
+            document.getElementById('msg-bloqueo').textContent = "⚠️ ERROR DE RED - REINTENTANDO...";
+            setTimeout(verificarAcceso, 3000); // Reintenta solo si falla la red
         }
     }
 
@@ -81,7 +83,7 @@
         const f = document.getElementById(`file-${lado}`).files[0];
         if(!f) return;
         Tesseract.recognize(f, 'spa').then(({data:{text}}) => {
-            const limpio = text.toUpperCase().replace(/[^A-ZÑÁÉÍÓÚ\n]/g, '').split('\n').filter(l => l.length > 5).join('\n');
+            const limpio = text.toUpperCase().replace(/[^A-ZÑ\n]/g, '').split('\n').filter(l => l.length > 5).join('\n');
             document.getElementById(`letras-${lado}`).value = limpio;
         });
     }
@@ -162,7 +164,7 @@
                 const p = Object.keys(sopas[lado].map).find(x => cmd.includes(x));
                 if(p) {
                     const loc = sopas[lado].map[p].start;
-                    const ut = new SpeechSynthesisUtterance(`Sopa ${lado}, ${p} esta en fila ${loc.r}, columna ${loc.c}`);
+                    const ut = new SpeechSynthesisUtterance(`${p} en Sopa ${lado}: fila ${loc.r}, columna ${loc.c}`);
                     window.speechSynthesis.speak(ut);
                     if(!sopas[lado].active.has(p)) toggle(lado, p);
                 }
